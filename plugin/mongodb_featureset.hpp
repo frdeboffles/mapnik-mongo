@@ -26,16 +26,18 @@
 #define MONGODB_FEATURESET_HPP
 
 // mapnik
-#include <mapnik/box2d.hpp>
+#include <mapnik/geometry/box2d.hpp>
 #include <mapnik/datasource.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/unicode.hpp>
 
 // mongo
-#include <mongo/client/dbclientcursor.h>
+#include <mongocxx/cursor.hpp>
 
 // boost
-#include <boost/scoped_ptr.hpp>
+#include <boost/thread/mutex.hpp>
+
+#include "connection_manager.hpp"
 
 using mapnik::Featureset;
 using mapnik::box2d;
@@ -44,18 +46,26 @@ using mapnik::transcoder;
 using mapnik::context_ptr;
 
 class mongodb_featureset : public mapnik::Featureset {
-    boost::shared_ptr<mongo::DBClientCursor> rs_;
-    context_ptr ctx_;
-    boost::scoped_ptr<mapnik::transcoder> tr_;
-    mapnik::value_integer feature_id_;
+  std::shared_ptr<Connection> conn_;
+  std::shared_ptr<mongocxx::cursor> rs_;
+  mongocxx::cursor::iterator it_;
+  const std::string geometry_;
+  context_ptr ctx_;
+  std::unique_ptr<mapnik::transcoder> tr_;
+  mapnik::value_integer feature_id_;
 
 public:
-    mongodb_featureset(const boost::shared_ptr<mongo::DBClientCursor> &rs,
-                       const context_ptr &ctx,
-                       const std::string &encoding);
-    ~mongodb_featureset();
+  mongodb_featureset(const std::shared_ptr<Connection> &conn,
+                     const std::shared_ptr<mongocxx::cursor> &rs,
+                     const std::string &geometry,
+                     const context_ptr &ctx,
+                     const std::string &encoding);
 
-    feature_ptr next();
+  ~mongodb_featureset();
+
+  feature_ptr next();
+
+  void read_properties(const bsoncxx::document::view &bson, const mapnik::feature_ptr &feature, const std::string &geometry);
 };
 
 #endif // MONGODB_FEATURESET_HPP

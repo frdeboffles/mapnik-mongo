@@ -32,6 +32,7 @@
         <Datasource>
             <Parameter name="type">mongodb</Parameter>
             <Parameter name="collection">points</Parameter>
+            <Parameter name="log_level">debug</Parameter>
         </Datasource>
     </Layer>
     <Layer name="lines_layer" status="on" srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">
@@ -39,6 +40,7 @@
         <Datasource>
             <Parameter name="type">mongodb</Parameter>
             <Parameter name="collection">linestrings</Parameter>
+            <Parameter name="log_level">debug</Parameter>
         </Datasource>
     </Layer>
     <Layer name="polys_layer" status="on" srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">
@@ -46,6 +48,7 @@
         <Datasource>
             <Parameter name="type">mongodb</Parameter>
             <Parameter name="collection">polygons</Parameter>
+            <Parameter name="log_level">debug</Parameter>
         </Datasource>
     </Layer>
 </Map>

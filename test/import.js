@@ -1,69 +1,56 @@
-"use strict";
+'use strict';
 
-var path = require("path");
-var mapnik = require("mapnik"), mongodb = require("mongodb");
+var path = require('path');
+var mapnik = require('mapnik'), mongodb = require('mongodb');
 
-var server = new mongodb.Server("localhost", 27017),
-    connector = new mongodb.Db("gis", server, { w: 1 });
-
+mapnik.register_datasources('/opt/mapnik/lib/mapnik/input');
 var nReady = 0;
+var MongoClient = mongodb.MongoClient;
+var url = 'mongodb://localhost:27017/gis';
 
-connector.open(function(err, db) {
-    if (err)
-        return console.log("mongodb connect error:", err.message);
-
-    [ "points", "linestrings", "polygons" ].forEach(function(name) {
-        db.collection(name, function(err, collection) {
-            if (err) {
-                connector.close();
-                return console.log("collection selecting error:", err.message);
-            }
-
-            collection.ensureIndex({ geometry: "2dsphere" }, function(err) {
-                if (err) {
-                    connector.close();
-                    return console.log("collection selecting error:", err.message);
-                }
-
-                importShp(name, collection);
+[ 'points', 'linestrings', 'polygons' ].forEach(function(name) {
+    MongoClient.connect(url, function(err, db) {
+        if (err) throw err;
+        var dbo = db.db('gis');
+        dbo.createCollection(name, function (err, collection) {
+            if (err) throw err;
+            console.log('Collection ' + name + ' created');
+            collection.createIndex({ geometry: '2dsphere' }, function(err) {
+                if (err) throw err;
+                console.log('2dsphere index on ' + name + ' created');
             });
+            importShp(name, collection, db);
         });
     });
 });
 
-function importShp(name, collection) {
+function importShp(name, collection, db) {
     var dataSource = new mapnik.Datasource({
-            type: "shape",
-            file: path.join("shp", name)
-        }),
-        featureSet = dataSource.featureset(), feature;
+            type: 'shape',
+            file: path.join('shp', name)
+        });
+    var featureSet = dataSource.featureset();
 
-    (function next(feature) {
+    function next(feature) {
         if (!feature) {
             if (++nReady === 3) { // stupidly async chains counting :-)
-                console.log("done...");
-                connector.close();
+                console.log('done...');
+                process.exit();
             }
-
+            db.close();
             return;
         }
 
-        var json = JSON.parse(feature.toJSON()), geom = json.geometry;
-        if (geom.type === "MultiPolygon") {
-            geom.type = "Polygon";
-            geom.coordinates = geom.coordinates.map(function(pol) { return pol[0]; });
-        }
-
-        if (geom.type === "Polygon") // workaround to remove the last [ 0, 0 ]
-            geom.coordinates.forEach(function(pol) { pol.splice(-1, 1); });
-
-        collection.insert(json, function(err) {
+        var json = JSON.parse(feature.toJSON());
+        console.log('insert feature in ' + name, json);
+        collection.insertOne(json, function(err) {
             if (err) {
-                connector.close();
-                return console.log("inserting error:", err.message);
+                console.log('inserting error:', err.message);
             }
-
             next(featureSet.next());
         });
-    })(featureSet.next());
+    }
+    next(featureSet.next());
 }
+
+

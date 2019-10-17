@@ -26,20 +26,23 @@
 
 // mapnik
 #include <mapnik/datasource.hpp>
+#include <mapnik/geometry/geometry_type.hpp>
 
 // mongo
-#include <mongo/client/dbclientcursor.h>
+#include <bsoncxx/types.hpp>
 
 // std
 #include <vector>
 
 class mongodb_converter {
 public:
-    static void convert_geometry(const mongo::BSONElement &loc, mapnik::feature_ptr feature);
+  static void convert_geometry(const bsoncxx::document::element &loc, mapnik::feature_ptr feature);
 
-    static void convert_point(const std::vector<mongo::BSONElement> &coords, mapnik::feature_ptr feature);
-    static void convert_linestring(const std::vector<mongo::BSONElement> &coords, mapnik::feature_ptr feature);
-    static void convert_polygon(const std::vector<mongo::BSONElement> &coords, mapnik::feature_ptr feature);
+  static mapnik::geometry::geometry<double> convert_point(const bsoncxx::array::view &coords);
+
+  static mapnik::geometry::geometry<double> convert_linestring(const bsoncxx::array::view &coords);
+
+  static mapnik::geometry::geometry<double> convert_polygon(const bsoncxx::array::view &coords);
 };
 
 #endif // MONGODB_CONVERTER_HPP

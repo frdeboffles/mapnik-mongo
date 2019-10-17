@@ -1,0 +1,46 @@
+version: "3.3"
+
+services:
+  node-mongoc:
+    build:
+      context: docker/node-mongoc
+      dockerfile: Dockerfile
+    image: ${DOCKER_REGISTRY}/node-mongoc:${DOCKER_IMAGE_VERSION}
+
+  node-mongocxx:
+    build:
+      context: docker/node-mongocxx
+      dockerfile: Dockerfile
+      args:
+        - DOCKER_REGISTRY=${DOCKER_REGISTRY}
+        - DOCKER_IMAGE_VERSION=${DOCKER_IMAGE_VERSION}
+    image: ${DOCKER_REGISTRY}/node-mongocxx:${DOCKER_IMAGE_VERSION}
+
+  node-mongocxx-mapnik:
+    build:
+      context: docker/node-mongocxx-mapnik
+      dockerfile: Dockerfile
+      args:
+        - DOCKER_REGISTRY=${DOCKER_REGISTRY}
+        - DOCKER_IMAGE_VERSION=${DOCKER_IMAGE_VERSION}
+    image: ${DOCKER_REGISTRY}/node-mongocxx-mapnik:${DOCKER_IMAGE_VERSION}
+
+  node-mongo-mapnik:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        - DOCKER_REGISTRY=${DOCKER_REGISTRY}
+        - DOCKER_IMAGE_VERSION=${DOCKER_IMAGE_VERSION}
+    image: ${DOCKER_REGISTRY}/node-mongo-mapnik:${DOCKER_IMAGE_VERSION}
+
+  node-mongo-mapnik-test:
+    build:
+      context: test
+      dockerfile: Dockerfile
+      args:
+        - DOCKER_REGISTRY=${DOCKER_REGISTRY}
+        - DOCKER_IMAGE_VERSION=${DOCKER_IMAGE_VERSION}
+    image: ${DOCKER_REGISTRY}/node-mongo-mapnik-test:${DOCKER_IMAGE_VERSION}
+    volumes:
+      - ./test-res:/opt/test-res

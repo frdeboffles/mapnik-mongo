@@ -1,24 +1,34 @@
 # MongoDB input plugin for Mapnik
 
 This is a connector to MongoDB data in the form of a Mapnik C++ plugin.
-MongoDB supports spatial indexig on a sphere for a Points, a LineStrings and a Polygons since version 2.4.
+MongoDB supports spatial indexing on a sphere for a Points, a LineStrings and a 
+Polygons since version 2.4.
 
 # Usage
 
 Input plugin accepts the following parameters:
- * host -- (optional) hostname to connect MongoDB [default: "localhost"]
- * port -- (optional) port to connect [default: 27017]
- * dbname -- (optional) database name to use [default: "gis"]
- * collection -- (required) collection to use
+ * uri -- (optional) uri to connect MongoDB [default: "mongodb://localhost:27017"]
+ * database -- (optional) database name to use [default: "gis"]
+ * collection -- (optional) collection to use [default: "points"]
+ * geometry -- (optional) key to the geometry document in the mongodb results to 
+ use [default: "geometry"]
+ * geometry_index_2d -- (optional) set to true if you want to use the `2d` index on 
+ the `<geometry>.coordinates` [default: false]
+ * filter -- (optional) mongodb filter in json format to use [default: "{}"]
+ * log_level -- (optional) set the plugin log level. Values can be `debug`, `warn`, `error`, `none`
+  [default: "none"]
 
 Example in XML:
 
     <Datasource>
         <Parameter name="type">mongodb</Parameter>
+        <Parameter name="uri">mongodb://localhost:27017/?minPoolSize=2&maxPoolSize=6</Parameter>
         <Parameter name="collection">polygons</Parameter>
     </Datasource>
     
-Records in the database should have a "geometry" property with GeoJSON geometry (only Point, LineString and Polygon are supported), and a "properties" property, which contains an information about feature.
+Records in the database should have a "geometry" property with GeoJSON geometry (only Point, 
+LineString and Polygon are supported), and a "properties" property, which contains an information 
+about feature.
 
 Example:
 
@@ -27,54 +37,20 @@ Example:
             type: "LineString",
             coordinates: [ [ lng1, lat1 ], [ lng2, lat2 ], ... ]
         },
-        properties: {
-            name: "Long Hard Road",
-            id: 32167,
-            ...
-        }
+        name: "Long Hard Road",
+        id: 32167,
+        ...
     }
     
 CAUTION: notice the Longitude, Latitude order.
 
-# Demo
+# Run the test example using docker
 
-Render result for [test/test.js](https://github.com/hamer/mapnik-mongo/blob/master/test/test.js), source shape files in QGis [screenshot](https://raw.github.com/hamer/mapnik-mongo/master/test/qgis_shp_screenshot.png):
+    docker-compose build node-mongo-mapnik-test
+    docker-compose run node-mongo-mapnik-test
+    
+This will create a sample mongo database with the features from the `points`, `linestrings`
+and `polygons` shapefiles and then render 2 tiles using this plugin.
 
-![west](https://raw.github.com/hamer/mapnik-mongo/master/test/1.png)
-![east](https://raw.github.com/hamer/mapnik-mongo/master/test/2.png)
+You can then find the generated pngs in the `./test-res` folder
 
-# Setup
-
-1) Install MongoDB with C++ driver (libmongoclient)
-
-Recommended to install from https://github.com/mongodb/mongo.git
-
-    git clone https://github.com/mongodb/mongo.git
-    cd mongo
-    git checkout r2.4.6
-    scons --full install
-
-2) Start MongoDB
-
-In another terminal:
-
-    mkdir db
-    cd db
-    mongod --dbpath .
-
-3) Prepare test environment (optional)
-
-The tests are written in Node.js v0.10.x for Mapnik v2.2.x.
-
-    cd test/
-    npm install mongodb mapnik
-
-4) Import a shapefiles to the database
-
-In another terminal:
-
-    node import.js
-
-5) Run test.js
-
-    node test.js

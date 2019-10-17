@@ -29,16 +29,13 @@
 #include <mapnik/params.hpp>
 #include <mapnik/query.hpp>
 #include <mapnik/feature.hpp>
-#include <mapnik/box2d.hpp>
+#include <mapnik/geometry/box2d.hpp>
 #include <mapnik/coord.hpp>
 #include <mapnik/feature_layer_desc.hpp>
 #include <mapnik/unicode.hpp>
-#include <mapnik/value_types.hpp>
 
 // boost
 #include <boost/optional.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/scoped_ptr.hpp>
 
 // stl
 #include <vector>
@@ -57,31 +54,36 @@ using mapnik::parameters;
 using mapnik::coord2d;
 
 class mongodb_datasource : public datasource {
-    const std::string uri_;
-    const std::string username_;
-    const std::string password_;
-    layer_descriptor desc_;
-    mapnik::datasource::datasource_t type_;
-    ConnectionCreator<Connection> creator_;
-    bool persist_connection_;
-    mutable bool extent_initialized_;
-    mutable mapnik::box2d<double> extent_;
+  layer_descriptor desc_;
+  mapnik::datasource::datasource_t type_;
+  std::shared_ptr<ConnectionCreator> creator_;
+  std::string geometry_;
+  bool geometry_index_2d_;
+  bsoncxx::document::value filter_;
+  bool persist_connection_;
+  mutable bool extent_initialized_;
+  mutable mapnik::box2d<double> extent_;
 
-    std::string json_bbox(const box2d<double> &env) const;
-
+  std::string json_bbox(const box2d<double> &env) const;
+  bsoncxx::document::value geo_filter(const box2d<double> &env) const;
 public:
-    mongodb_datasource(const parameters &params);
-    ~mongodb_datasource();
+  mongodb_datasource(const parameters &params);
 
-    static const char *name();
-    mapnik::datasource::datasource_t type() const;
-    layer_descriptor get_descriptor() const;
+  ~mongodb_datasource();
 
-    featureset_ptr features(const query &q) const;
-    featureset_ptr features_at_point(coord2d const &pt, double tol = 0) const;
-    mapnik::box2d<double> envelope() const;
+  static const char *name();
 
-    boost::optional<mapnik::datasource::geometry_t> get_geometry_type() const;
+  mapnik::datasource::datasource_t type() const;
+
+  layer_descriptor get_descriptor() const;
+
+  featureset_ptr features(const query &q) const;
+
+  featureset_ptr features_at_point(coord2d const &pt, double tol = 0) const;
+
+  mapnik::box2d<double> envelope() const;
+
+  boost::optional<mapnik::datasource_geometry_t> get_geometry_type() const;
 };
 
 #endif // MONGODB_DATASOURCE_HPP
