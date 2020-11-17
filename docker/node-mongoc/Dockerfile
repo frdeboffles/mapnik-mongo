@@ -1,7 +1,7 @@
-FROM node:12-alpine
+FROM node:15-alpine
 
-ARG VERSION=1.15.0
-LABEL alpine-version=3.9
+ARG VERSION=1.17.2
+LABEL alpine-version=3.11
 LABEL libmongoc-version=${VERSION}
 
 ENV MONGOC_HOME /opt/mongoc

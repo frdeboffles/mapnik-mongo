@@ -10,11 +10,11 @@ RUN make && make install
 
 ###################
 
-FROM node:12-alpine
+FROM node:15-alpine
 
-RUN apk add --no-cache \
-            boost \
-            boost-program_options \
+RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/main' >> /etc/apk/repositories && \
+    apk update && \
+    apk add --no-cache \
             freetype \
             icu-libs \
             libjpeg \
@@ -28,7 +28,13 @@ RUN apk add --no-cache \
             harfbuzz \
             cairo \
             libpq \
-            postgresql-client
+            postgresql-client && \
+    apk add --no-cache \
+            boost==1.67.0-r2 && \
+    apk add --no-cache \
+            boost-program_options==1.67.0-r2
+
+
 
 COPY --from=builder /usr/local/include/libmongoc-1.0 /usr/local/include/libmongoc-1.0
 COPY --from=builder /usr/local/include/libbson-1.0 /usr/local/include/libbson-1.0

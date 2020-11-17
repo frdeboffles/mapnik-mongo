@@ -34,13 +34,13 @@ services:
         - DOCKER_IMAGE_VERSION=${DOCKER_IMAGE_VERSION}
     image: ${DOCKER_REGISTRY}/node-mongo-mapnik:${DOCKER_IMAGE_VERSION}
 
-  node-mongo-mapnik-test:
-    build:
-      context: test
-      dockerfile: Dockerfile
-      args:
-        - DOCKER_REGISTRY=${DOCKER_REGISTRY}
-        - DOCKER_IMAGE_VERSION=${DOCKER_IMAGE_VERSION}
-    image: ${DOCKER_REGISTRY}/node-mongo-mapnik-test:${DOCKER_IMAGE_VERSION}
-    volumes:
-      - ./test-res:/opt/test-res
+#  node-mongo-mapnik-test:
+#    build:
+#      context: test
+#      dockerfile: Dockerfile
+#      args:
+#        - DOCKER_REGISTRY=${DOCKER_REGISTRY}
+#        - DOCKER_IMAGE_VERSION=${DOCKER_IMAGE_VERSION}
+#    image: ${DOCKER_REGISTRY}/node-mongo-mapnik-test:${DOCKER_IMAGE_VERSION}
+#    volumes:
+#      - ./test-res:/opt/test-res
